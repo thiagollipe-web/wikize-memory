@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f4ee">
+    <meta name="description" content="Extraia, revise e acumule memórias de conhecimento da Wikipédia em português.">
+    <title>Memória Viva — Wikipédia PT</title>
+    <link rel="stylesheet" href="/static/styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Navegação">
+        <a class="brand" href="#inicio" aria-label="Memória Viva, início">
+          <span class="brand-mark" aria-hidden="true">m<span>+</span></span>
+          <span class="brand-copy"><strong>memória viva</strong><small>WIKIPÉDIA · PT</small></span>
+        </a>
+
+        <div class="sidebar-label">ESPAÇO DE TRABALHO</div>
+        <nav class="nav-list">
+          <a class="nav-item is-active" href="#inicio"><span class="nav-icon" aria-hidden="true">✳</span> Nova memória</a>
+          <a class="nav-item" href="#acervo"><span class="nav-icon" aria-hidden="true">▤</span> Acervo</a>
+          <a class="nav-item" href="#revisao"><span class="nav-icon" aria-hidden="true">◷</span> Revisão <span id="pending-badge" class="nav-badge">0</span></a>
+        </nav>
+
+        <div class="sidebar-bottom">
+          <div class="storage-card">
+            <span class="storage-dot" aria-hidden="true"></span>
+            <div><strong>Memória persistente</strong><small>Seu acervo fica salvo neste espaço.</small></div>
+          </div>
+          <a class="github-link" href="https://github.com/thiagollipe-web/wikize-memory" target="_blank" rel="noreferrer">Ver código no GitHub <span aria-hidden="true">↗</span></a>
+        </div>
+      </aside>
+
+      <main class="main-content" id="inicio">
+        <header class="topbar">
+          <div class="breadcrumb"><span>Espaço pessoal</span><span class="crumb-sep">/</span><strong>Nova memória</strong></div>
+          <button class="icon-button" id="settings-open" type="button" aria-label="Configurar acesso" title="Configurar acesso">⚙</button>
+        </header>
+
+        <section class="hero">
+          <div class="eyebrow"><span class="eyebrow-line"></span> CONHECIMENTO QUE SE CONECTA</div>
+          <h1>O que vamos<br><em>guardar hoje?</em></h1>
+          <p class="hero-copy">Escolha um artigo da Wikipédia em português. O bot encontra ideias centrais, relações e entidades — e prepara memórias para você revisar antes de guardar.</p>
+        </section>
+
+        <section class="composer-card" aria-labelledby="form-heading">
+          <div class="composer-heading">
+            <div class="step-number">01</div>
+            <div><h2 id="form-heading">Escolha um ponto de partida</h2><p>Use o título de um artigo, como aparece na Wikipédia.</p></div>
+          </div>
+          <form id="harvest-form">
+            <label class="field-label" for="article-title">ARTIGO</label>
+            <div class="input-row">
+              <span class="input-search" aria-hidden="true">⌕</span>
+              <input id="article-title" name="title" type="text" maxlength="300" placeholder="Ex.: Memória, Neurociência, Hipocampo" required autocomplete="off">
+              <button class="submit-button" id="submit-button" type="submit"><span>Extrair memórias</span><span aria-hidden="true">→</span></button>
+            </div>
+            <div class="options-row">
+              <label class="toggle-option"><input id="abstractive" type="checkbox" checked><span class="toggle-track"></span><span>Resumo abstrativo</span></label>
+              <label class="toggle-option"><input id="embeddings" type="checkbox" checked><span class="toggle-track"></span><span>Embeddings semânticos</span></label>
+              <span class="options-note">Primeiro uso pode levar alguns minutos para carregar os modelos.</span>
+            </div>
+          </form>
+          <div class="status-box" id="job-status" hidden aria-live="polite">
+            <span class="status-spinner" aria-hidden="true"></span>
+            <div><strong id="status-title">Preparando análise</strong><p id="status-message">A tarefa aparecerá aqui.</p></div>
+          </div>
+        </section>
+
+        <section class="results-section" id="results-section" hidden aria-labelledby="results-title">
+          <div class="section-heading">
+            <div><div class="eyebrow eyebrow-small">LEITURA SEMÂNTICA</div><h2 id="results-title">O que encontramos</h2></div>
+            <a id="source-link" class="source-pill" href="#" target="_blank" rel="noreferrer">Abrir fonte <span aria-hidden="true">↗</span></a>
+          </div>
+          <div class="result-grid">
+            <article class="result-card summary-card"><div class="card-kicker">SÍNTESE</div><p id="result-summary"></p><div id="central-claims" class="claim-list"></div></article>
+            <article class="result-card"><div class="card-kicker">TÓPICOS-CHAVE</div><div id="topics-list" class="chip-list"></div><div class="card-kicker card-kicker-spaced">ENTIDADES</div><div id="entities-list" class="entity-list"></div></article>
+          </div>
+          <div class="memory-review-heading" id="revisao"><div><div class="eyebrow eyebrow-small">REVISÃO HUMANA</div><h2>Memórias propostas <span id="new-memory-count" class="count-pill">0</span></h2></div><p>Aprovar envia para o acervo.<br>Os itens ficam pendentes até sua decisão.</p></div>
+          <div id="new-memories" class="memory-list"></div>
+        </section>
+
+        <section class="library-section" id="acervo" aria-labelledby="library-title">
+          <div class="section-heading library-heading">
+            <div><div class="eyebrow eyebrow-small">ACERVO PESSOAL</div><h2 id="library-title">Memórias guardadas</h2></div>
+            <div class="library-tools"><label class="memory-search"><span aria-hidden="true">⌕</span><input id="memory-search" type="search" placeholder="Buscar no acervo"></label><button class="text-button" id="import-button" type="button">Importar JSON <span aria-hidden="true">↗</span></button><input id="import-file" type="file" accept="application/json,.json" hidden><button class="text-button" id="export-button" type="button">Exportar JSON <span aria-hidden="true">↗</span></button></div>
+          </div>
+          <div class="memory-list" id="approved-memories"></div>
+          <div class="empty-library" id="empty-library"><span class="empty-orbit" aria-hidden="true">✳</span><strong>Seu acervo começa com uma ideia.</strong><p>Extraia um artigo e aprove as primeiras memórias para vê-las aqui.</p></div>
+          <button class="load-more" id="load-more" type="button" hidden>Carregar mais</button>
+        </section>
+
+        <footer class="footer"><span>Fontes da Wikipédia em português · CC BY-SA 4.0</span><span>Memórias novas precisam de revisão humana.</span></footer>
+      </main>
+    </div>
+
+    <dialog class="settings-dialog" id="settings-dialog" aria-labelledby="settings-title">
+      <form method="dialog" class="dialog-close-row"><button class="icon-button" aria-label="Fechar configurações">×</button></form>
+      <div class="eyebrow eyebrow-small">ACESSO DO ACERVO</div>
+      <h2 id="settings-title">Conectar ao seu espaço</h2>
+      <p>Use a chave de acesso configurada no servidor para criar análises, aprovar memórias e importar arquivos. Ela fica apenas nesta sessão do navegador.</p>
+      <label class="field-label" for="access-token">CHAVE DE ACESSO</label>
+      <input id="access-token" class="token-input" type="password" autocomplete="current-password" placeholder="Cole a chave de acesso">
+      <div class="dialog-actions"><button class="quiet-button" id="clear-token" type="button">Limpar</button><button class="submit-button" id="save-token" type="button">Conectar <span aria-hidden="true">→</span></button></div>
+      <p class="dialog-note" id="token-message" aria-live="polite"></p>
+    </dialog>
+
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>

@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: memoria-viva-wikipedia-pt
+    runtime: python
+    plan: 2c-8g
+    region: virginia
+    buildCommand: >-
+      python -m pip install --upgrade pip &&
+      python -m pip install -e ".[full,web]" &&
+      python -m spacy download pt_core_news_lg
+    startCommand: uvicorn wikize_memory.web.app:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/healthz
+    disk:
+      name: memoria-viva-data
+      mountPath: /var/data
+      sizeGB: 10
+    envVars:
+      - key: WIKIMEDIA_USER_AGENT
+        value: "MemoriaVivaBot/1.0 (+https://github.com/thiagollipe-web/wikize-memory)"
+      - key: WIKIZEMEMORY_DATABASE_PATH
+        value: /var/data/memorias.sqlite3
+      - key: HF_HOME
+        value: /var/data/huggingface
+      - key: WIKIZEMEMORY_DEVICE
+        value: cpu
+      - key: WIKIZEMEMORY_ADMIN_TOKEN
+        sync: false

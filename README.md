@@ -1,8 +1,8 @@
-# WikiZé Memory Harvester
+# Memória Viva — Wikipédia PT
 
 Pipeline em Python para coletar artigos da Wikipédia em português, produzir análise linguística estruturada e exportar memórias revisáveis para o THIGAS Synapse v3.
 
-O código trabalha em etapas desacopladas: ingestão pela MediaWiki Action API, análise NLP, validação Pydantic v2, consolidação de memórias e exportação JSON. A interface de terminal usa Typer e Rich.
+O código trabalha em etapas desacopladas: ingestão pela MediaWiki Action API, análise NLP, validação Pydantic v2, consolidação de memórias e exportação JSON. O terminal usa Typer e Rich; a interface web permite colher artigos, revisar memórias e mantê-las num acervo persistente.
 
 ## Recursos
 
@@ -15,6 +15,7 @@ O código trabalha em etapas desacopladas: ingestão pela MediaWiki Action API, 
 - Esquemas Pydantic v2 para validar artigos, entidades, relações, vetores, memórias e artefatos finais.
 - Exportação completa e pacote thigas-synapse-memories versão 3; fatos novos ficam com approved=false para revisão antes do uso.
 - Consolidação com arquivo anterior, removendo duplicatas por assunto e fato sem apagar tags ou aliases existentes.
+- Aplicação web opcional com análise em background, acervo SQLite persistente, deduplicação, revisão humana, importação e exportação JSON.
 - GitHub Actions para testes e validação, mais criação de GitHub Release com wheel e sdist quando uma tag v* é enviada.
 
 ## Instalação
@@ -32,6 +33,22 @@ Requer Python 3.11 ou superior.
 4. Se necessário, ajuste WIKIZEMEMORY_DEVICE para cpu ou cuda. O valor auto escolhe CUDA quando PyTorch a encontra.
 
 A instalação completa baixa PyTorch e os modelos NLP. A primeira execução pode baixar vários gigabytes de pesos para o cache local. Em computadores com pouca memória, os parâmetros --no-abstractive e --no-embeddings evitam carregar mT5 e Sentence Transformers; spaCy ainda precisa do modelo português.
+
+## Aplicação web
+
+A interface web usa o mesmo pipeline do CLI. Cada análise gera memórias pendentes; aprove ou descarte cada item antes de consolidar o acervo. Duplicatas por assunto e fato são ignoradas. O banco SQLite mantém o estado, e a interface importa ou exporta pacotes JSON.
+
+Instalação local da interface:
+
+    python -m pip install -e ".[full,web]"
+    python -m spacy download pt_core_news_lg
+    export WIKIMEDIA_USER_AGENT="MemoriaVivaBot/1.0 (+https://github.com/thiagollipe-web/wikize-memory)"
+    export WIKIZEMORY_ADMIN_TOKEN="$(python -c 'import secrets; print(secrets.token_urlsafe(32))')"
+    uvicorn wikize_memory.web.app:app --host 127.0.0.1 --port 8000
+
+Abra http://127.0.0.1:8000. Para produção, configure `WIKIZEMEMORY_DATABASE_PATH` para um disco persistente, `HF_HOME` para o cache de modelos persistente e defina um token longo em `WIKIZEMEMORY_ADMIN_TOKEN`. O arquivo `render.yaml` descreve uma implantação Render com os modelos completos, um disco de 10 GB e acesso protegido por token. O serviço mantém as memórias aprovadas e pendentes no mesmo acervo; a API exige o token tanto para leitura quanto para escrita.
+
+O processamento pode levar alguns minutos, sobretudo no primeiro artigo, quando os pesos dos modelos são baixados. O serviço serializa as análises para manter o consumo de memória previsível.
 
 ### Windows PowerShell
 
